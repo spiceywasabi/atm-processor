@@ -127,7 +127,7 @@ void loop () {
     }
     rtc.adjust(DateTime(tyear, tmonth, tday, thour, tminute, tsecond));
   } else if (command == "L1") {
-    String value = getValue(input, ':', 1);
+    String value = getValue(input, '!', 1);
     bool v = (bool)value.toInt();
     if (v) {
       digitalWrite(L1, HIGH);
@@ -141,7 +141,7 @@ void loop () {
       }
     }
   } else if (command == "L2") {
-    String value = getValue(input, ':', 1);
+    String value = getValue(input, '!', 1);
     bool v = (bool)value.toInt();
     if (v) {
       digitalWrite(L2, HIGH);
