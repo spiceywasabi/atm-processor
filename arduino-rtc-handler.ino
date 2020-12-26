@@ -39,13 +39,13 @@ void setup () {
   // and away we go
   Serial.begin(9600);
   if (! rtc.begin()) {
-    Serial.println("Couldn't find RTC");
+    Serial.println(F("Couldn't find RTC"));
     Serial.flush();
     abort();
   }
 
   if (rtc.lostPower()) {
-    Serial.println("RTC lost power, let's set the time!");
+    Serial.println(F("RTC lost power, let's set the time!"));
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
 }
@@ -88,7 +88,6 @@ void loop () {
   String input = Serial.readString();
   input.trim();
   String command = getValue(input, '!', 0);
-  //command = command.substring(0,command.length()-1);
   if (DEBUG) {
     Serial.print(F("Command: '"));
     Serial.print(command);
@@ -102,7 +101,7 @@ void loop () {
     byte ret = sscanf(charBuf, "%4d-%2d-%2dT%2d:%2d:%2d",
                       &tyear, &tmonth, &tday, &thour, &tminute, &tsecond);
     if (ret != 7) {
-      printf("Error while parsing time");
+      printf(F("Error while parsing time"));
     }
     // set now
     if (DEBUG) {
@@ -173,9 +172,8 @@ void loop () {
     Serial.print(rtc.getTemperature());
     Serial.println("");
   } else {
-    Serial.println(F("UNKNOWN"));
+    Serial.print(F("UNKNOWN "));
+    timeString(); 
   }
-  if(REPEAT){
-    delay(3000);
-  }
+  delay(2000);
 }
