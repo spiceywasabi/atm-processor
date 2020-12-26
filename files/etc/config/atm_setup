@@ -1,0 +1,6 @@
+config 'atm' 'config'
+	option 'enabled' 'yes'
+	option 'balance' '10000'
+	option 'fee' '10'
+
+
