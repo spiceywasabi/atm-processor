@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # this is a very simple tool to provide communications and control of the Arduino
 # which handles lights and RTC, this script essentially acts as a basic hwclock command
 # to interface with the Arduino and syncronize the time in the event either NTP or Date get out of sync
