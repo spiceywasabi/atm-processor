@@ -1,4 +1,4 @@
-# 2019 wasabi and
+# 2019 wasabi and jrwr
 import os
 import sys
 import pyDes
