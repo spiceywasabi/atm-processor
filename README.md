@@ -28,7 +28,7 @@ This allows the following:
  - Limit writes (Flash is more reliable then SD cards so main booting is stored in memory [RAM] or Flash) and code is limited to read-only operations primarily. 
  - Ability to store logging and debug data for research 
 
-
+All code is stored now in the flash for easy building, however it is still recommended to store these files on an SD card and simply mount over them for flexibility. Files are located in *files/atm*.
 ### Arduino 
 
 Due to the limited GPIO ports on the embedded router chosen, a Arduino Nano was chosen due to small size and 5v logic. Any Arduino will do, supports Arduino Uno, Mega, Nano, Micro as long as they're operating at 5v due to the router providing 5v power. The Arduino acts as a RTC and GPIO controller via the onboard serial port of the router.
