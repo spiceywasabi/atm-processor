@@ -76,7 +76,7 @@ Our build system was based off of Ubuntu 18.04, however any Linux distro may be 
 
 #### Dependencies:
     apt install build-essential libncurses5-dev libncursesw5-dev \
-    zlib1g-dev gawk git gettext libssl-dev xsltproc wget unzip python
+    zlib1g-dev gawk git gettext libssl-dev xsltproc wget unzip python htop screen
 #### Using Image Builder
 1. Obtain Image Builder for specified device - for example the MT300N-v2 would be: https://downloads.openwrt.org/releases/19.07.5/targets/ramips/mt76x8/
 2. Once downloaded, extract files to working directory and copy contents of this repo into that directory
