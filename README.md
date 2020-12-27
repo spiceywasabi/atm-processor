@@ -48,7 +48,42 @@ Due to the limited GPIO ports on the embedded router chosen, a Arduino Nano was 
 | rtc-comms.py | Python code designed to interface with Arduino. Specifically acts as a *hwclock*-like tool designed to primarily syncronize RTC via cron. Supports setting internal hwclock (on embedded device) as well as setting RTC depending on time offsets.   |
 
 
+# Setup
+### Hardware Setup
+The ATM processor requires several components to be able to run. During our setup to handle multiple ATMs and for debugging purposes we used a PBX. This is not nessarily required but we recommend it in order to match our lab environment completely. Below is a hardware guide of what we used and recommended available components - you can substitute as needed.
+
+**Please note:** *the ATM validates cards so they must have a "valid" prefix number to be able to be used. No code or processing systems validate the cards or store the information.*
+
+The following components were used:
+- ATM (Needs to support same protocol)
+- Linux Compatible USB Modem ([StarTech 56K USB Modem](https://smile.amazon.com/StarTech-com-56K-USB-Dial-up-Modem/dp/B01MYLE06I "StarTech 56K USB Modem") or [V-Top USB v92 Modem](https://smile.amazon.com/V-TOP-External-V-92-Modem-Cable/dp/B00XW5QYWS "V-Top USB v92 Modem"))
+- Embedded Linux System (Raspberry Pi or as we used embedded router such as [GL.iNET MT300Nv2](https://smile.amazon.com/GL-iNET-GL-MT300N-V2-Repeater-300Mbps-Performance/dp/B073TSK26W/ "GL.iNET MT300Nv2"))
+- PBX ([PABX](https://smile.amazon.com/Excelltel-SOHO-PBX-Telephone-Control-Exchange/dp/B015MIQ12A/r "PABX") was what we used, they are hard to find now, may be cheaper on eBay or similar)
+- (optional) RTC module ([DS3231 i2c Breakout](https://smile.amazon.com/HiLetgo-AT24C32-Arduino-Without-Battery/dp/B00LX3V7F0 "DS3231 i2c Breakout"))
+- (optional) Arduino Board ([Arduino Nano with Terminal Board](https://smile.amazon.com/GeeWin-ATmega328-Controller-Terminal-Expansion/dp/B07PMYTR76 "Arduino Nano with Terminal Board"))
+- (optional) Hardware Enclosure ([Big Red Box](https://www.sparkfun.com/products/11366 "Big Red Box"))
+
+### Diagram
+
+![ATM Setup Diagram](https://raw.githubusercontent.com/spiceywasabi/atm-processor/main/connection-diagram.png)
+
+## OpenWrt Builder
+Part of this system bundles all components into a embedded Linux image based off of OpenWRT. To do this we utilize OpenWRT Image Builder. 
+- The process for setting up image builder is here - https://openwrt.org/docs/guide-user/additional-software/imagebuilder
+- Optional frontends are available (but untested) - https://openwrt.org/docs/guide-developer/imagebuilder_frontends 
+
+Our build system was based off of Ubuntu 18.04, however any Linux distro may be used:
+
+#### Dependencies:
+    apt install build-essential libncurses5-dev libncursesw5-dev \
+    zlib1g-dev gawk git gettext libssl-dev xsltproc wget unzip python
+#### Using Image Builder
+1. Obtain Image Builder for specified device - for example the MT300N-v2 would be: https://downloads.openwrt.org/releases/19.07.5/targets/ramips/mt76x8/
+2. Once downloaded, extract files to working directory and copy contents of this repo into that directory
+3. Ensure the files/ directory is located in that directory along with build.sh
+4. chmod +x build.sh and run it. It will pull down and execute all build processes and obtain additional dependencies. 
+5. bin will contain built firmware, you can use your respective firmware upgrade to flash
+
 # Closing
 
 This software is for research only, use at your own risk. 
-
