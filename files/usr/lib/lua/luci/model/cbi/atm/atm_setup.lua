@@ -13,6 +13,10 @@ r = s:option(Value, "fee", "fee", "Transaction fee applied to requests")
 r.default = "10"
 r.optional=false
 r.rmempty=false
+t = s:option(Value, "person", "person", "The person in the log files")
+t.default = "John Crosant"
+t.optional=false
+t.rmempty=false
 
 return m
 
