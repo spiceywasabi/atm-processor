@@ -30,7 +30,7 @@ if len(sys.argv) < 2:
 ##
 ## presume we're good
 ##
-if str(sys.argv[1]).lower() == "sync"
+if str(sys.argv[1]).lower() == "sync":
 	with serial.Serial(path,ttyspeed,timeout=5) as ser:
 		ser.write(b'GET')
 		tries=10
@@ -65,7 +65,7 @@ if str(sys.argv[1]).lower() == "sync"
 		if (rtc_time > current_time) and (abs(current_time-rtc_time)>timedelta(hours=1)):
 			print("warning: internal clock appears to be incorrectly set, syncing to rtc")
 			ex_code = subprocess.call(['busybox','date','-u','-s',"'%s'%"%dt_str])
-		elif (state_file_time > rtc_time) or (rtc_time < current_time):
+		elif (state_file_time > rtc_time and (abs(state_file_time-rtc_time)>timedelta(hours=1)) or (rtc_time < current_time and (abs(current_time-rtc_time)>timedelta(hours=1)))):
 			print("warning: rtc clock seems to be incorrectly set, syncing from internal time")
 			# determine which to pick
 			new_time_str = current_time.strftime(write_time_fmt)
@@ -73,16 +73,16 @@ if str(sys.argv[1]).lower() == "sync"
 				# we pick the state file
 				new_time_str = state_file_time.strftime(write_time_fmt)
 			ser.write("SET!%s"%new_time_str)
-					try:
-							state_time = open(state_file,'w+')
-							state_time.write(new_time_str.strftime(read_time_fmt))
-							state_time.write("\n")
-							state_time.close()
-					except Exception as e:
-							print("error took place on write", e)
+			try:
+				state_time = open(state_file,'w+')
+				state_time.write(current_time.strftime(read_time_fmt))
+				state_time.write("\n")
+				state_time.close()
+			except Exception as e:
+				print("error took place on write", e)
 		else:
 			print("time does not need sync, ready")
-		ser.close() # yay 
+		ser.close() # yay
 elif str(sys.argv[1]).lower() == "temp":
 	with serial.Serial(path,ttyspeed,timeout=5) as ser:
 		ser.write(b'TEMP')
@@ -95,4 +95,3 @@ elif str(sys.argv[1]).lower() == "temp":
 			else:
 				tries-=1
 		ser.close()
-	
