@@ -67,7 +67,7 @@ def openwrt_updates():
 		except Exception as e:
 			#proc.kill()
     			#outs, errs = proc.communicate()
-			logs.error("error while reading config",e)
+			print("error while reading config",e)
 		pprint(outs)
 		return str(outs).strip()
 	# things we look for
@@ -90,7 +90,7 @@ def openwrt_updates():
 		if c is not None:
 			if DEBUG:
 				print("updating BCODE",c)
-			if int(c) == 1:
+			if int(c) != 1:
 				BCODE="111"
 			else:
 				BCODE="000"
@@ -136,8 +136,6 @@ def nicePrint(buf,m="Packet"):
 					nice_output+=b
 	print("%s Raw:  %s"%(m,nice_output))
 	print("%s Buf: %s"%(m,buf.encode('hex')))
-	logs.info("%s Raw:  %s"%(m,nice_output))
-	logs.info("%s Buf: %s"%(m,buf.encode('hex')))
 	b = ' '.join(format(ord(x), 'b') for x in buf)
 #	   print("%s Binary: %s"%(m,str(b)))
 
@@ -181,14 +179,14 @@ def clearBit(int_type, offset):
 
 def getChunk(msg,size,offset=0):
 	chunk = msg[offset:offset+size]
-	logs.info("Got: [%d,%d]%s"%(offset,offset+size,chunk.encode('hex')))
+	print("Got: [%d,%d]%s"%(offset,offset+size,chunk.encode('hex')))
 	return chunk
 
 def decodeCard(track):
 	FS = "="
 	track=track.lstrip(';')
 	pprint(track)
-	logs.info("got cc card id track 0 ",track[0])
+	print("got cc card id track 0 ",track[0])
 	if len(track)>0:
 		offset = 0
 		field = {}
@@ -247,8 +245,8 @@ class Transactions():
 			'22': self.process_invalid_message,
 			'25': self.process_invalid_message,
 			'29': self.process_reversal_message,
-			'31': self.process_evil_prompt_balance_checking,
-			'32': self.process_evil_prompt_balance_checking,
+			'31': self.process_evil_transaction_balance_checking,
+			'32': self.process_evil_transaction_balance_checking,
 			'35': self.process_invalid_message,
 			'41': self.process_invalid_message,
 			'42': self.process_invalid_message,

