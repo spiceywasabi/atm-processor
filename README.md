@@ -13,7 +13,7 @@ After quite a few revisions and an attempt to make this code non-CPTC specific, 
 
 ### Embedded Router / Linux System
 
-This is currently designed to use A GL.iNET MT300A router which has adequate RAM and Flash storage to support running the python processing code. However any router will do, some even have GPIO built in which would allow for RTC to be built in and not require Arduino. During runtime approximately 60MB of RAM is utilized leaving about half free. To fit supporting tools and Python with needed SSL support the flash is 12.5MB or about 80% full. Without SSL support (and hashlib) is about 48% full. You can customize *build.sh* as needed to accommodate different router/embedded systems.
+This is currently designed to use A GL.iNET MT300A (v2) router which has adequate RAM and Flash storage to support running the python processing code. However any router will do, some even have GPIO built in which would allow for RTC to be built in and not require Arduino. During runtime approximately 60MB of RAM is utilized leaving about half free. To fit supporting tools and Python with needed SSL support the flash is 12.5MB or about 80% full. Without SSL support (and hashlib) is about 48% full. You can customize *build.sh* as needed to accommodate different router/embedded systems.
 
 To make the code as flexible as possible, the decision was made to use the built in SD card reader. Firmware supports reading DOS-FS/FAT file systems and the launch scripts in the firmware automatically mount and launch scripts off the SD Card. 
 
