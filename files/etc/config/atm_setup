@@ -1,6 +1,7 @@
 config 'atm' 'config'
-	option 'enabled' 'yes'
+	option 'enabled' '1'
 	option 'balance' '10000'
 	option 'fee' '10'
+	option 'terminalid' '12345678'
 
 
