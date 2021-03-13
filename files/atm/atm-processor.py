@@ -443,7 +443,7 @@ class Transactions():
 		pprint(track)
 		currentbalance=BBALANCE
 		print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],currentbalance))
-		fee = BFEE
+		fee = int(BFEE)
 
 		# API CALL
 		try:
@@ -478,7 +478,7 @@ class Transactions():
 		total_balance = BBALANCE # infinite money
 		track = decodeCard(body['track2'])
 		print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],total_balance))
-		fee = BFEE # 5000 e.g. 50.00
+		fee = int(BFEE) # 5000 e.g. 50.00
 
 		authorization_number = str(''.join(["{}".format(randint(0, 9)) for num in range(0, 8)]))
 		try:
