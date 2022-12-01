@@ -8,6 +8,7 @@ import string
 import traceback
 import time
 import subprocess
+import logging
 
 from pprint import pprint
 
@@ -418,7 +419,7 @@ try:
 	start = time.time()
 	while True:
 			readbit = os.read(fd, 1)
-			print readbit.encode("hex") + " ",
+			print (readbit.encode("hex") + " ")
 			if readbit == "" :
 					continue
 			char = fixParity(readbit)

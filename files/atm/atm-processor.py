@@ -4,9 +4,10 @@ import sys
 import pyDes
 import string
 import traceback
+import threading
 import time
 import socket
-import SocketServer
+import socketserver
 import datetime
 import json
 from pprint import pprint
@@ -359,15 +360,16 @@ class Transactions():
 		amount = "-" + str((amount)*100).zfill(8)
 		# API CALL
 		try:
-			bq = BankQuery()
-			bq.lookup(body['track2'])
-			bbq = bq.withdraw(amount,'savings')
-			response_code = bbq[0]
-			bbq = bq.lookup(body['track2'])
-			savings_acc = bbq[2]
-			balance = str((int(savings_acc['currentbalance'])+int(amount))*100).replace("-","").zfill(8)
+			print("Boilerplate from how data is to be sent")
+			#bq = BankQuery()
+			#bq.lookup(body['track2'])
+			#bbq = bq.withdraw(amount,'savings')
+			#response_code = bbq[0]
+			#bbq = bq.lookup(body['track2'])
+			#savings_acc = bbq[2]
+			#balance = str((int(savings_acc['currentbalance'])+int(amount))*100).replace("-","").zfill(8)
 			#balance = str((str(savings_acc['currentbalance']).replace("-",""))*100).zfill(8)
-			print("Deducting %s from %s to make %s"%(str(amount),str(savings_acc['currentbalance']),str(balance)))
+			#print("Deducting %s from %s to make %s"%(str(amount),str(savings_acc['currentbalance']),str(balance)))
 		except Exception as e:
 			traceback.print_exc()
 			response_code = "111" # 2424
@@ -400,8 +402,8 @@ class Transactions():
 		print("\n\nCustomer: %s (%s) has balance of %s"%(BPERSON,track['primary_account_number'],currentbalance))
 		fee=0
 		try:
-			currentbalance=int(raw_input("Enter (new) account balance: "))
-			fee = int(raw_input("Enter fee for ATM: "))
+			currentbalance=int(input("Enter (new) account balance: "))
+			fee = int(input("Enter fee for ATM: "))
 		except:
 			print("invalid string, continuing with defaults %s"%str(currentbalance))
 		# API CALL
@@ -580,7 +582,7 @@ class Transactions():
 			nicePrint(buf,"Unkown Message Packet: ")
 		return None
 
-class ATMMultiHandler(SocketServer.BaseRequestHandler):
+class ATMMultiHandler(socketserver.BaseRequestHandler):
 	def atmtoip(self,rid):
 		global ATMLIST
 		id = str(rid).replace(" ","").strip()
@@ -629,8 +631,10 @@ class ATMMultiHandler(SocketServer.BaseRequestHandler):
 				m = data
 			"""
 
-class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
+
+class ThreadedUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
 	pass
+
 
 if __name__ == "__main__":
 	run = True
@@ -644,9 +648,9 @@ if __name__ == "__main__":
 		# Exit the server thread when the main thread terminates
 		server_thread.daemon = True
 		server_thread.start()
-		print "Server loop running in thread:", server_thread.name
- 		while run:
- 			time.sleep(0.250)
+		print("Server loop running in thread:", server_thread.name)
+		while run:
+			time.sleep(0.250)
 	except Exception as e:
 		traceback.print_exc()
 		if e is KeyboardInterrupt:
